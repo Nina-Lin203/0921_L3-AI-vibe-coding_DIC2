@@ -1,5 +1,9 @@
 "use client";
 
+// Must import Leaflet CSS inside the client component (not in globals.css)
+// This ensures it's only loaded on client-side and works with Turbopack
+import "leaflet/dist/leaflet.css";
+
 import React, { useEffect, useState, useMemo } from "react";
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -13,8 +17,16 @@ import {
   Clock,
   Compass,
   MapPin,
-  ExternalLink,
 } from "lucide-react";
+
+// Fix Leaflet default icon broken image bug in webpack/Next.js
+// (marker-icon.png, marker-shadow.png are not bundled by default)
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 interface TaiwanWeatherMapProps {
   stations: StationWithWeather[];
@@ -150,14 +162,17 @@ export default function TaiwanWeatherMap({
   }, [stations, selectedStationId]);
 
   return (
-    <div className="relative w-full h-full min-h-[600px] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950">
+    <div
+      className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950"
+      style={{ width: "100%", height: "100%", minHeight: "620px" }}
+    >
       <MapContainer
         center={[23.8, 120.98]}
         zoom={8}
         minZoom={7}
         maxZoom={16}
         scrollWheelZoom={true}
-        className="w-full h-full"
+        style={{ width: "100%", height: "100%", minHeight: "620px" }}
       >
         {/* OpenStreetMap TileLayer with high contrast and dark filter */}
         <TileLayer

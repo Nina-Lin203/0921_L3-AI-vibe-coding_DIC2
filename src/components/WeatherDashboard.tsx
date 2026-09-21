@@ -70,7 +70,7 @@ export default function WeatherDashboard({ initialStations }: WeatherDashboardPr
         />
 
         {/* GIS Map Container */}
-        <div className="flex-1 w-full min-h-[620px] rounded-2xl overflow-hidden shadow-2xl relative">
+        <div style={{ width: "100%", height: "700px" }} className="rounded-2xl overflow-hidden shadow-2xl relative">
           <MapWrapper
             stations={stations}
             selectedCounty={selectedCounty}
