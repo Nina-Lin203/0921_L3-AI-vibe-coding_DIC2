@@ -57,3 +57,20 @@
 3. 在 Vercel 設定環境變數並連結 GitHub 觸發自動部署。
 
 ---
+
+## 4. 本地開發與啟動 (Getting Started)
+
+本專案使用 [Next.js](https://nextjs.org) + Tailwind CSS + Leaflet。
+
+### 環境變數設定
+請複製 `.env.example` 並命名為 `.env`，填入您的中央氣象署 API 金鑰：
+```bash
+cp .env.example .env
+```
+
+### 啟動開發伺服器
+```bash
+npm run dev
+```
+
+在瀏覽器開啟 [http://localhost:3000](http://localhost:3000) 即可查看成果。
