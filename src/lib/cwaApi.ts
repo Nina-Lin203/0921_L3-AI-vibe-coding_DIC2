@@ -14,7 +14,11 @@ export interface FetchCWAOptions {
  * Dataset: O-A0001-001 (自動氣象站資料)
  */
 export async function fetchCWAWeatherStations(options: FetchCWAOptions = {}): Promise<RawCWAStation[]> {
-  const apiKey = options.apiKey || process.env.CWA_API_KEY;
+  const apiKey =
+    options.apiKey ||
+    process.env.NEXT_PUBLIC_CWA_API_KEY ||
+    process.env.CWA_API_KEY ||
+    "CWA-6032AC4A-EB9D-4A7D-A626-B4744840B987";
 
   if (!apiKey) {
     throw new Error("Missing CWA_API_KEY. Please configure CWA_API_KEY in your .env file.");

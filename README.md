@@ -1,6 +1,8 @@
-# 系統設計文件 (System Design Document)
+# 台灣氣象 GIS 視覺化系統 (Taiwan Weather GIS)
 
-本文件定義建立「台灣氣象 GIS 視覺化網頁系統」的系統架構、技術選型、資料流程以及給 **Antigravity** 的具體執行指令。
+> 🌐 **線上體驗網址 (GitHub Pages)**：[https://Nina-Lin203.github.io/0921_L3-AI-vibe-coding_DIC2/](https://Nina-Lin203.github.io/0921_L3-AI-vibe-coding_DIC2/)
+
+本專案整合交通部中央氣象署 (CWA) 即時觀測資料，提供具備台灣行政區界線、即時氣溫/降雨/風速/氣壓檢視、暗色科技風格與衛星空照圖切換的互動式 GIS 氣象儀表板。
 
 ---
 

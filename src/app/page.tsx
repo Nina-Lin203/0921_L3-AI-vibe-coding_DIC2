@@ -1,22 +1,18 @@
-import { getLatestWeatherStations, getDatabaseStats } from "@/lib/db";
-import { runWeatherETL } from "@/lib/etl";
 import WeatherDashboard from "@/components/WeatherDashboard";
+import { DEMO_STATIONS } from "@/lib/demoData";
+import { StationWithWeather } from "@/types/weather";
 
-export const dynamic = "force-dynamic";
-
-export default async function Home() {
-  let stats = getDatabaseStats();
-
-  // If local DB is empty on first load, run ETL automatically
-  if (stats.stationCount === 0) {
-    try {
-      await runWeatherETL();
-    } catch (err) {
-      console.error("Initial ETL run failed:", err);
-    }
-  }
-
-  const initialStations = getLatestWeatherStations();
+export default function Home() {
+  const initialStations: StationWithWeather[] = DEMO_STATIONS.map(({ station, weather }) => ({
+    ...station,
+    obsTime: weather.obsTime,
+    airTemperature: weather.airTemperature,
+    precipitation: weather.precipitation,
+    relativeHumidity: weather.relativeHumidity,
+    windSpeed: weather.windSpeed,
+    airPressure: weather.airPressure,
+    weatherDescription: weather.weatherDescription,
+  }));
 
   return <WeatherDashboard initialStations={initialStations} />;
 }

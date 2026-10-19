@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { StationWithWeather } from "@/types/weather";
+import { fetchCWAWeatherStations } from "@/lib/cwaApi";
+import { cleanCWAStationList, cleanedToStationsWithWeather } from "@/lib/cleaner";
 import Header from "./Header";
 import StatsCards from "./StatsCards";
 import ControlPanel from "./ControlPanel";
@@ -28,22 +30,38 @@ export default function WeatherDashboard({ initialStations }: WeatherDashboardPr
     }
   };
 
-  // Handle live data refresh from CWA API
+  // Handle live data refresh from CWA API (supports both API route and direct browser fetch)
   const handleRefresh = async () => {
-    const res = await fetch("/api/weather", { method: "POST" });
-    if (!res.ok) {
-      throw new Error(`Refresh failed: ${res.statusText}`);
-    }
-    const data = await res.json();
-    if (data.success) {
-      // Re-fetch updated list from GET endpoint
-      const getRes = await fetch("/api/weather");
-      const getData = await getRes.json();
-      if (getData.success && Array.isArray(getData.data)) {
-        setStations(getData.data);
+    try {
+      const res = await fetch("/api/weather", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          const getRes = await fetch("/api/weather");
+          const getData = await getRes.json();
+          if (getData.success && Array.isArray(getData.data)) {
+            setStations(getData.data);
+            return;
+          }
+        }
       }
+    } catch {
+      // Fallback to direct client-side fetch below
+    }
+
+    // Direct browser fetch from CWA Open API
+    const rawStations = await fetchCWAWeatherStations();
+    const cleaned = cleanCWAStationList(rawStations);
+    const mapped = cleanedToStationsWithWeather(cleaned);
+    if (mapped.length > 0) {
+      setStations(mapped);
     }
   };
+
+  // Auto-fetch real-time CWA data on first load
+  React.useEffect(() => {
+    handleRefresh().catch((err) => console.warn("Initial CWA sync:", err));
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-sky-500 selection:text-white">

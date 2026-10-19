@@ -169,7 +169,8 @@ export default function TaiwanWeatherMap({
 
   // Load Taiwan GeoJSON boundaries
   useEffect(() => {
-    fetch("/data/taiwan_counties.geojson")
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+    fetch(`${basePath}/data/taiwan_counties.geojson`)
       .then((res) => res.json())
       .then((data) => setGeoJsonData(data))
       .catch((err) => console.error("Error loading Taiwan GeoJSON:", err));

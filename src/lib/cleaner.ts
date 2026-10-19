@@ -123,3 +123,13 @@ export function cleanCWAStationList(rawList: RawCWAStation[]): CleanedStationRes
 
   return results;
 }
+
+/**
+ * Convert cleaned results to StationWithWeather objects for frontend rendering
+ */
+export function cleanedToStationsWithWeather(cleaned: CleanedStationResult[]): (CleanedStation & CleanedWeatherData)[] {
+  return cleaned.map(({ station, weather }) => ({
+    ...station,
+    ...weather,
+  }));
+}
