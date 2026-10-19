@@ -131,6 +131,32 @@ function createMarkerIcon(station: StationWithWeather, mode: "temp" | "rain" | "
   });
 }
 
+const TILE_LAYERS = {
+  dark: {
+    id: "dark",
+    name: "暗色科技",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, OpenStreetMap',
+    maxZoom: 16,
+  },
+  osm: {
+    id: "osm",
+    name: "標準街景",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
+  satellite: {
+    id: "satellite",
+    name: "衛星空照",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS',
+    maxZoom: 18,
+  },
+} as const;
+
+type TileLayerTheme = keyof typeof TILE_LAYERS;
+
 export default function TaiwanWeatherMap({
   stations,
   selectedCounty,
@@ -139,6 +165,7 @@ export default function TaiwanWeatherMap({
   onSelectStation,
 }: TaiwanWeatherMapProps) {
   const [geoJsonData, setGeoJsonData] = useState<FeatureCollection<Geometry> | null>(null);
+  const [tileTheme, setTileTheme] = useState<TileLayerTheme>("dark");
 
   // Load Taiwan GeoJSON boundaries
   useEffect(() => {
@@ -161,23 +188,48 @@ export default function TaiwanWeatherMap({
     return stations.find((s) => s.stationId === selectedStationId) || null;
   }, [stations, selectedStationId]);
 
+  const currentTile = TILE_LAYERS[tileTheme];
+
   return (
     <div
       className="relative rounded-2xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-950"
       style={{ width: "100%", height: "100%", minHeight: "620px" }}
     >
+      {/* Floating Map Theme Selector */}
+      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-slate-700/80 shadow-xl">
+        {(Object.keys(TILE_LAYERS) as TileLayerTheme[]).map((themeKey) => {
+          const t = TILE_LAYERS[themeKey];
+          const isActive = tileTheme === themeKey;
+          return (
+            <button
+              key={themeKey}
+              onClick={() => setTileTheme(themeKey)}
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                isActive
+                  ? "bg-sky-500 text-white shadow-md shadow-sky-500/30"
+                  : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
+              }`}
+            >
+              {t.name}
+            </button>
+          );
+        })}
+      </div>
+
       <MapContainer
         center={[23.8, 120.98]}
         zoom={8}
         minZoom={7}
-        maxZoom={16}
+        maxZoom={currentTile.maxZoom}
         scrollWheelZoom={true}
         style={{ width: "100%", height: "100%", minHeight: "620px" }}
       >
-        {/* OpenStreetMap TileLayer with high contrast and dark filter */}
+        {/* Dynamic Watermark-Free TileLayer */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          key={tileTheme}
+          attribution={currentTile.attribution}
+          url={currentTile.url}
+          maxZoom={currentTile.maxZoom}
         />
 
         {/* Taiwan Boundary GeoJSON Layer */}

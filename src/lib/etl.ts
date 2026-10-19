@@ -1,6 +1,7 @@
 import { fetchCWAWeatherStations, FetchCWAOptions } from "./cwaApi";
 import { cleanCWAStationList } from "./cleaner";
 import { upsertStations, insertWeatherDataBatch, getDatabaseStats } from "./db";
+import { seedDemoData } from "./demoData";
 
 export interface ETLResult {
   success: boolean;
@@ -10,6 +11,7 @@ export interface ETLResult {
   weatherRecordsInserted: number;
   dbStats: { stationCount: number; observationCount: number };
   durationMs: number;
+  isDemo?: boolean;
   error?: string;
 }
 
@@ -18,6 +20,7 @@ export interface ETLResult {
  * 1. Fetch from CWA Open API
  * 2. Clean and validate records
  * 3. Store into SQLite Database
+ * 4. Fallback to realistic demo data if API key is not configured and DB is empty
  */
 export async function runWeatherETL(options: FetchCWAOptions = {}): Promise<ETLResult> {
   const startTime = Date.now();
@@ -49,6 +52,27 @@ export async function runWeatherETL(options: FetchCWAOptions = {}): Promise<ETLR
       durationMs,
     };
   } catch (error) {
+    const dbStats = getDatabaseStats();
+
+    // If database is completely empty and fetch failed (e.g. no CWA_API_KEY), populate demo data
+    if (dbStats.stationCount === 0) {
+      console.log("⚠️ CWA API unavailable or missing API Key. Seeding realistic Taiwan demo data...");
+      const seeded = seedDemoData();
+      const updatedStats = getDatabaseStats();
+      const durationMs = Date.now() - startTime;
+      return {
+        success: true,
+        isDemo: true,
+        totalFetched: seeded,
+        totalCleaned: seeded,
+        stationsUpserted: seeded,
+        weatherRecordsInserted: seeded,
+        dbStats: updatedStats,
+        durationMs,
+        error: (error as Error).message,
+      };
+    }
+
     const durationMs = Date.now() - startTime;
     return {
       success: false,
@@ -56,7 +80,7 @@ export async function runWeatherETL(options: FetchCWAOptions = {}): Promise<ETLR
       totalCleaned: 0,
       stationsUpserted: 0,
       weatherRecordsInserted: 0,
-      dbStats: { stationCount: 0, observationCount: 0 },
+      dbStats,
       durationMs,
       error: (error as Error).message || String(error),
     };

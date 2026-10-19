@@ -93,7 +93,7 @@ export default function WeatherDashboard({ initialStations }: WeatherDashboardPr
           >
             交通部中央氣象署 (CWA Open Data)
           </a>
-          {" "}• OpenStreetMap & CARTO 底圖
+          {" "}• OpenStreetMap & Esri GIS 底圖
         </p>
       </footer>
     </div>
